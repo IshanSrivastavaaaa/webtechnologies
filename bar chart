@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>D3 Bar Chart with Random Data</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body { font-family: sans-serif; }
+    .bar {
+      fill: steelblue;
+    }
+    .bar:hover {
+      fill: orange;
+    }
+    .axis text {
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>D3 Bar Chart with Random Data</h2>
+<svg id="chart" width="600" height="300"></svg>
+
+<script>
+  // ---- SETTINGS ----
+  const svg = d3.select("#chart");
+  const width = +svg.attr("width");
+  const height = +svg.attr("height");
+  const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+
+  // ---- GENERATE RANDOM DATA ----
+  const data = d3.range(10).map(() => Math.floor(Math.random() * 100));
+
+  // ---- SCALES ----
+  const x = d3.scaleBand()
+    .domain(d3.range(data.length))
+    .range([margin.left, width - margin.right])
+    .padding(0.1);
+
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(data)])
+    .nice()
+    .range([height - margin.bottom, margin.top]);
+
+  // ---- DRAW BARS ----
+  svg.selectAll("rect")
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("x", (d, i) => x(i))
+    .attr("y", d => y(d))
+    .attr("height", d => y(0) - y(d))
+    .attr("width", x.bandwidth());
+
+  // ---- X AXIS ----
+  svg.append("g")
+    .attr("transform", translate(0,${height - margin.bottom}))
+    .call(d3.axisBottom(x).tickFormat(i => i));
+
+  // ---- Y AXIS ----
+  svg.append("g")
+    .attr("transform", translate(${margin.left},0))
+    .call(d3.axisLeft(y));
+</script>
+
+</body>
+</html>
