@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html ng-app="labApp">
+<head>
+    <title>Bill Payment App</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+    <script src="app.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background: #f0f0f0; }
+        .right { text-align: right; }
+        .form-group { margin-bottom: 15px; }
+        label { display: inline-block; width: 80px; }
+    </style>
+</head>
+<body ng-controller="BillController">
+    
+    <h1>Bill Payment Record System</h1>
+
+    <div style="background: #f9f9f9; padding: 20px; border: 1px solid #ddd;">
+        <h3>Add New Record</h3>
+        <form name="billForm" ng-submit="addRecord(billForm)" novalidate>
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" name="name" ng-model="newRecord.name" required>
+            </div>
+            <div class="form-group">
+                <label>Amount:</label>
+                <input type="number" name="amount" ng-model="newRecord.amount" required min="0">
+            </div>
+            <div class="form-group">
+                <label>Date:</label>
+                <input type="date" name="date" ng-model="newRecord.date" required>
+            </div>
+            <button type="submit" ng-disabled="billForm.$invalid">Add Record</button>
+        </form>
+    </div>
+
+    <h3>Saved Records</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Bill Name</th>
+                <th>Amount (₹)</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="r in records">
+                <td>{{r.id}}</td>
+                <td>{{r.name}}</td>
+                <td class="right">{{r.amount | currency : '₹'}}</td>
+                <td>{{r.date}}</td>
+                <td><button ng-click="remove(r)">Delete</button></td>
+            </tr>
+            <tr style="font-weight: bold; background: #eee;">
+                <td colspan="2" class="right">Total:</td>
+                <td class="right">{{ total() | currency : '₹' }}</td>
+                <td colspan="2"></td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>
