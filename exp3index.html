@@ -1,0 +1,144 @@
+<!doctype html>
+<html ng-app="tableApp">
+<head>
+    <meta charset="utf-8">
+    <title>Experiment 3 - AngularJS Tables</title>
+
+    <!-- AngularJS CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+
+    <!-- Our app code -->
+    <script src="app.js"></script>
+
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+
+        tr.even {
+            background: #f8f8f8;
+        }
+
+        tr.odd {
+            background: #ffffff;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            font-family: Arial, sans-serif;
+        }
+
+        h1, h2 {
+            color: #004080;
+        }
+
+        label {
+            margin-right: 12px;
+        }
+    </style>
+</head>
+<body ng-controller="TableController as ctrl">
+<div class="container">
+    <h1>AngularJS Table Examples</h1>
+
+    <!-- 1. Display a Table -->
+    <section>
+        <h2>1. Display a Table</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Department</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="student in ctrl.students track by $index"
+                ng-class-odd="'odd'"
+                ng-class-even="'even'">
+                <td>{{$index + 1}}</td>
+                <td>{{student.name}}</td>
+                <td>{{student.age}}</td>
+                <td>{{student.dept}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- 2. Display contents with orderBy filter (+ search from Assessment) -->
+    <section>
+        <h2>2. Display contents with orderBy filter</h2>
+
+        <p>
+            <label>
+                Sort by:
+                <select ng-model="ctrl.sortKey">
+                    <option value="name">Name</option>
+                    <option value="age">Age</option>
+                    <option value="dept">Department</option>
+                </select>
+            </label>
+
+            <label>
+                <input type="checkbox" ng-model="ctrl.reverse">
+                Reverse
+            </label>
+        </p>
+
+        <!-- Assessment: Search by name using ng-model and filter -->
+        <p>
+            <label>
+                Search by name:
+                <input type="text" ng-model="ctrl.searchText"
+                       placeholder="Type name to filter">
+            </label>
+        </p>
+
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Department</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="student in ctrl.students
+                           | filter:ctrl.searchText
+                           | orderBy:ctrl.sortKey:ctrl.reverse
+                           track by $index"
+                ng-class-even="'even'"
+                ng-class-odd="'odd'">
+                <td>{{$index + 1}}</td>
+                <td>{{student.name}}</td>
+                <td>{{student.age}}</td>
+                <td>{{student.dept}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- 3. Even / odd explanation -->
+    <section>
+        <h2>3. Display Table with even and odd rows (styling already shown)</h2>
+        <p>
+            Notice rows have alternating backgrounds using
+            <code>ng-class-even</code> and <code>ng-class-odd</code>.
+        </p>
+    </section>
+</div>
+</body>
+</html>
