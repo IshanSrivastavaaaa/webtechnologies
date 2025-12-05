@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en" ng-app="MyApp">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AngularJS — Registration & Bill Payment (In-memory CRUD)</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular-messages.min.js"></script>
+  <style>
+    body{font-family: Arial, Helvetica, sans-serif; padding:20px; background:#f7f9fc}
+    .card{background:#fff;border-radius:8px;padding:18px;margin-bottom:20px;box-shadow:0 2px 6px rgba(20,20,40,0.06)}
+    label{display:block;margin-top:8px}
+    input.ng-invalid.ng-dirty, select.ng-invalid.ng-dirty, textarea.ng-invalid.ng-dirty{border:1px solid #e06}
+    .error{color:#c00;font-size:0.9em}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+    .btn{display:inline-block;padding:6px 10px;border-radius:6px;border:0;cursor:pointer}
+    .btn-primary{background:#2b8cff;color:#fff}
+    .btn-danger{background:#ff6b6b;color:#fff}
+    .btn-ghost{background:#f1f4f8;border:1px solid #e6eef9}
+    .small{font-size:0.9em}
+    .muted{color:#666}
+  </style>
+</head>
+<body ng-controller="MainCtrl as vm">
+  <h2>AngularJS Demo — Registration & Bill Payment</h2>
+
+  <div class="card">
+    <h3>User Registration (with validation)</h3>
+    <form name="regForm" novalidate ng-submit="vm.register(regForm)">
+      <div>
+        <label>Full name *</label>
+        <input name="fullname" type="text" ng-model="vm.user.fullname" required ng-minlength="3" class="input" />
+        <div ng-messages="regForm.fullname.$error" ng-if="regForm.fullname.$touched">
+          <div ng-message="required" class="error">Name is required.</div>
+          <div ng-message="minlength" class="error">Minimum 3 characters.</div>
+        </div>
+      </div>
+
+      <div>
+        <label>Email *</label>
+        <input name="email" type="email" ng-model="vm.user.email" required />
+        <div ng-messages="regForm.email.$error" ng-if="regForm.email.$touched">
+          <div ng-message="required" class="error">Email required.</div>
+          <div ng-message="email" class="error">Enter a valid email.</div>
+        </div>
+      </div>
+
+      <div>
+        <label>Password *</label>
+        <input name="password" type="password" ng-model="vm.user.password" required ng-minlength="6" />
+        <div ng-messages="regForm.password.$error" ng-if="regForm.password.$touched">
+          <div ng-message="required" class="error">Password required.</div>
+          <div ng-message="minlength" class="error">At least 6 characters.</div>
+        </div>
+      </div>
+
+      <div>
+        <label>Confirm Password *</label>
+        <input name="confirmPassword" type="password" ng-model="vm.user.confirmPassword" required pw-check="vm.user.password" />
+        <div ng-if="regForm.confirmPassword.$touched && vm.user.password !== vm.user.confirmPassword" class="error">Passwords do not match.</div>
+      </div>
+
+      <div>
+        <label>Phone (10 digits)</label>
+        <input name="phone" type="tel" ng-model="vm.user.phone" ng-pattern="/^\d{10}$/" />
+        <div ng-messages="regForm.phone.$error" ng-if="regForm.phone.$touched">
+          <div ng-message="pattern" class="error">Enter 10 digit phone number.</div>
+        </div>
+      </div>
+
+      <div>
+        <label>Date of Birth</label>
+        <input name="dob" type="date" ng-model="vm.user.dob" max="{{vm.maxDate | date:'yyyy-MM-dd'}}" />
+      </div>
+
+      <div>
+        <label>Gender</label>
+        <select name="gender" ng-model="vm.user.gender">
+          <option value="">--select--</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Address</label>
+        <textarea name="address" ng-model="vm.user.address" rows="3"></textarea>
+      </div>
+
+      <div style="margin-top:12px">
+        <button type="submit" class="btn btn-primary" ng-disabled="regForm.$invalid || vm.user.password !== vm.user.confirmPassword">Register</button>
+        <button type="button" class="btn btn-ghost" ng-click="vm.resetForm(regForm)">Reset</button>
+      </div>
+
+      <div style="margin-top:12px">
+        <strong>Registered users (in-memory):</strong>
+        <ul>
+          <li ng-repeat="u in vm.registeredUsers">{{ $index+1 }}. {{u.fullname}} — {{u.email}}</li>
+          <li ng-if="vm.registeredUsers.length===0" class="muted">No users yet.</li>
+        </ul>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Bill Payment Record (In-memory CRUD)</h3>
+
+    <form name="billForm" ng-submit="vm.saveBill(billForm)" novalidate>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+        <div style="flex:1;min-width:160px">
+          <label>Payee *</label>
+          <input name="payee" type="text" ng-model="vm.bill.payee" required />
+          <div ng-messages="billForm.payee.$error" ng-if="billForm.payee.$touched"><div ng-message="required" class="error">Payee required.</div></div>
+        </div>
+
+        <div style="width:130px">
+          <label>Amount *</label>
+          <input name="amount" type="number" ng-model="vm.bill.amount" min="0.01" step="0.01" required />
+          <div ng-messages="billForm.amount.$error" ng-if="billForm.amount.$touched"><div ng-message="required" class="error">Amount required.</div></div>
+        </div>
+
+        <div style="width:160px">
+          <label>Due Date</label>
+          <input name="due" type="date" ng-model="vm.bill.dueDate" />
+        </div>
+
+        <div style="width:140px">
+          <label>Status</label>
+          <select name="status" ng-model="vm.bill.status">
+            <option value="Pending">Pending</option>
+            <option value="Paid">Paid</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        <div>
+          <button type="submit" class="btn btn-primary" ng-disabled="billForm.$invalid">{{vm.isEditing? 'Update':'Add'}} Bill</button>
+          <button type="button" class="btn btn-ghost" ng-click="vm.clearBillForm(billForm)">Clear</button>
+        </div>
+      </div>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Payee</th>
+          <th>Amount</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="b in vm.bills track by b.id">
+          <td>{{$index+1}}</td>
+          <td>{{b.payee}}</td>
+          <td>{{b.amount | number:2}}</td>
+          <td>{{b.dueDate ? (b.dueDate | date:'yyyy-MM-dd') : '-'}}</td>
+          <td>{{b.status}}</td>
+          <td>
+            <button class="btn small" ng-click="vm.editBill(b)">Edit</button>
+            <button class="btn btn-danger small" ng-click="vm.deleteBill(b.id)">Delete</button>
+          </td>
+        </tr>
+        <tr ng-if="vm.bills.length===0"><td colspan="6" class="muted">No bills added yet.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    angular.module('MyApp', ['ngMessages'])
+      .directive('pwCheck', function() {
+        // simple directive to compare password and confirm password
+        return {
+          require: 'ngModel',
+          scope: {
+            otherModelValue: '=pwCheck'
+          },
+          link: function(scope, element, attributes, ngModel) {
+            ngModel.$validators.pwmatch = function(modelValue) {
+              return modelValue === scope.otherModelValue;
+            };
+            scope.$watch('otherModelValue', function() {
+              ngModel.$validate();
+            });
+          }
+        };
+      })
+      .controller('MainCtrl', ['$scope', function($scope) {
+        var vm = this;
+
+        // registration
+        vm.registeredUsers = [];
+        vm.user = {};
+        vm.maxDate = new Date(); // DOB cannot be in future
+
+        vm.register = function(form) {
+          if (form.$invalid) return;
+          if (vm.user.password !== vm.user.confirmPassword) return;
+
+          // push a shallow copy (don't store password in plain in real apps!)
+          vm.registeredUsers.push({
+            fullname: vm.user.fullname,
+            email: vm.user.email,
+            phone: vm.user.phone || '-',
+            dob: vm.user.dob || null,
+            gender: vm.user.gender || '-',
+            address: vm.user.address || '-'
+          });
+
+          alert('User registered successfully (in-memory).');
+          vm.user = {};
+          form.$setPristine();
+          form.$setUntouched();
+        };
+
+        vm.resetForm = function(form) {
+          vm.user = {};
+          if (form) { form.$setPristine(); form.$setUntouched(); }
+        };
+
+        // Bill Payment CRUD (in-memory)
+        vm.bills = [
+          {id:1, payee:'Electricity Board', amount:1200.00, dueDate: new Date(), status:'Pending'}
+        ];
+        vm.bill = {};
+        vm.isEditing = false;
+        var nextId = 2;
+
+        vm.saveBill = function(form) {
+          if (form.$invalid) return;
+          if (vm.isEditing) {
+            // update
+            var idx = vm.bills.findIndex(function(x){ return x.id === vm.bill.id; });
+            if (idx!==-1) {
+              // clone the object to avoid binding problems with date string vs object
+              vm.bills[idx] = angular.copy(vm.bill);
+            }
+            vm.isEditing = false;
+            vm.bill = {};
+            form.$setPristine(); form.$setUntouched();
+            return;
+          }
+
+          // add
+          var newBill = angular.copy(vm.bill);
+          newBill.id = nextId++;
+          vm.bills.push(newBill);
+          vm.bill = {};
+          form.$setPristine(); form.$setUntouched();
+        };
+
+        vm.editBill = function(b) {
+          // make a copy to the form and set editing mode
+          vm.bill = angular.copy(b);
+          // if dueDate is a string, convert to Date for the date input
+          if (vm.bill.dueDate && !(vm.bill.dueDate instanceof Date)) {
+            vm.bill.dueDate = new Date(vm.bill.dueDate);
+          }
+          vm.isEditing = true;
+          // scroll into view (optional enhancement)
+        };
+
+        vm.deleteBill = function(id) {
+          if (!confirm('Delete this bill?')) return;
+          vm.bills = vm.bills.filter(function(x){ return x.id !== id; });
+        };
+
+        vm.clearBillForm = function(form) {
+          vm.bill = {};
+          vm.isEditing = false;
+          if (form) { form.$setPristine(); form.$setUntouched(); }
+        };
+
+      }]);
+  </script>
+</body>
+</html>
